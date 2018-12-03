@@ -1,0 +1,28 @@
+{
+  "name": "geography-miscellaneous",
+  "version": "1.0.0",
+  "description": "Some Geographic Data and Caomputations",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ebmtranceboy/geo.git"
+  },
+  "keywords": [
+    "telegram",
+    "geography",
+    "OpenCage"
+  ],
+  "author": "Ebmtranceboy",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Ebmtranceboy/geo/issues"
+  },
+  "homepage": "https://github.com/Ebmtranceboy/geo#readme",
+  "dependencies": {
+    "child-process-async": "^1.0.1",
+    "node-telegram-bot-api": "^0.30.0"
+  }
+}

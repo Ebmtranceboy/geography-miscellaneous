@@ -4,15 +4,17 @@ const token = hidden.TOKEN;
 const api = new telegramBot(token, {polling: true});
 const exec = require('child-process-async').exec;
 const geodbkey = hidden.API_KEY;
+const makeSVG = require('./svgmaker').makeSVG;
 
 let results;
 let resultsAvailable = false;
 let chatId;
 let reference = {};
+let geometry = {};
 
 api.onText(/\/start/, function(msg, match){
-	api.sendMessage(msg.chat.id, `Welcome to Greography Miscellaneous! Type
-		/nameit <latitude> <longitude>		to know the name of this Earth location
+	api.sendMessage(msg.chat.id, `Welcome to Greography Miscellaneous! Send your location or type
+		/nameit [<latitude>] [<longitude>]	to know its name [or optionnally the name of this Earth location]
 		/reference <name of a location>		to define a point of reference on Earth
 		/distance <name of a location>		to compute the distance between a location and a reference previously defined`);
 });
@@ -40,6 +42,7 @@ api.onText(/\/reference +([^]+)/, function(msg, match){
 		if(typeof resp == 'object' && Object.keys(resp).includes("results") && resp.results.length > 0){
 			if(resp.results.length == 1){
 				const result = resp.results[0];
+				geometry = {...result.geometry};
 				reference = {formatted: result.formatted, geometry: result.geometry};
 				api.sendMessage(chatId, `Reference set to: ${reference.formatted} (lattitude: ${reference.geometry.lat}$, longitude: ${reference.geometry.lng})`);
 			}
@@ -57,7 +60,7 @@ api.onText(/\/reference +([^]+)/, function(msg, match){
 
 api.onText(/\/distance +([^]+)/, function(msg, match){
 	chatId = msg.chat.id;
-	if(reference.length == 0){
+	if(Object.keys(reference).length == 0){
 		api.sendMessage(chatId, 'Reference undefined. Type /reference <description> to create one first');
 		return;
 	}
@@ -87,10 +90,12 @@ api.onText(/\/distance +([^]+)/, function(msg, match){
 	curl();
 });
 
-api.onText(/\/nameit +(-?\d+.?\d*) +(-?\d+.?\d*)/, function (msg, match){
+api.onText(/\/nameit( +(-?\d+.?\d*) +(-?\d+.?\d*))?/, function (msg, match){
 	chatId = msg.chat.id;
+	const latitude = match[1] && match[1] != ""?match[2]:geometry.lat;
+	const longitude = match[1] && match[1] != ""?match[3]:geometry.lng;
 	async function curl(){
-		const req = '"'+`https://api.opencagedata.com/geocode/v1/json?q=${match[1]}+${match[2]}&key=${geodbkey}`+'"';
+		const req = '"'+`https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=${geodbkey}`+'"';
 		const child = await exec(`curl ${req}`);
 		let resp;
 		try{
@@ -103,9 +108,30 @@ api.onText(/\/nameit +(-?\d+.?\d*) +(-?\d+.?\d*)/, function (msg, match){
 
 });
 
+api.onText(/\/pictureit/, function(msg, match){
+	if(Object.keys(geometry).length > 0) {
+		async function picture(){
+			const p1 = await makeSVG(geometry.lat, geometry.lng);
+			const p2 = await exec('convert pic.svg pic.png');
+			api.sendPhoto(msg.chat.id, './pic.png', {caption: `lat:${geometry.lat} lng:${geometry.lng}`}, {contentType: 'image/png'});
+		}
+		picture();
+	}
+	else api.sendMessage(msg.chat.id, 'Not enough information. Define a new /reference or /nameit.');
+});
+
+api.on("message", (msg) =>{
+	if(msg.location){
+		const location = msg.location;
+		geometry = {lat: location.latitude, lng: location.longitude};
+		api.sendMessage(msg.chat.id, `Received new location: (latitude: ${geometry.lat}, longitude: ${geometry.lng}). Type /nameit to name it`); 
+	}
+});
+
 api.on("callback_query", (cq) => {
 	if(resultsAvailable && cq.data[0] == 'R') {
 		const result = results[Number(cq.data.slice(1))];
+		geometry = {...result.geometry};
 		reference = {formatted: result.formatted, geometry: result.geometry};
 		api.sendMessage(chatId, `Reference set to: ${reference.formatted} (lattitude: ${reference.geometry.lat}, longitude: ${reference.geometry.lng})`);
 	

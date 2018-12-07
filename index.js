@@ -16,6 +16,7 @@ api.onText(/\/start/, function(msg, match){
 	api.sendMessage(msg.chat.id, `Welcome to Greography Miscellaneous! Send your location or type
 		/nameit [<latitude>] [<longitude>]	to know its name [or optionnally the name of this Earth location]
 		/reference <name of a location>		to define a point of reference on Earth
+		/pictureit				to locate your reference on a world map
 		/distance <name of a location>		to compute the distance between a location and a reference previously defined`);
 });
 
@@ -44,7 +45,7 @@ api.onText(/\/reference +([^]+)/, function(msg, match){
 				const result = resp.results[0];
 				geometry = {...result.geometry};
 				reference = {formatted: result.formatted, geometry: result.geometry};
-				api.sendMessage(chatId, `Reference set to: ${reference.formatted} (lattitude: ${reference.geometry.lat}$, longitude: ${reference.geometry.lng})`);
+				api.sendMessage(chatId, `Reference set to: ${reference.formatted} (lattitude: ${reference.geometry.lat}, longitude: ${reference.geometry.lng})`);
 			}
 			else{
 				resultsAvailable = true;

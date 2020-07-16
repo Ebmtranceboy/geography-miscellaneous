@@ -25,7 +25,7 @@
     "child-process-async": "^1.0.1",
     "d3": "^5.7.0",
     "jsdom": "^13.0.0",
-    "lodash": "^4.17.14",
+    "lodash": "^4.17.19",
     "node-fetch-polyfill": "^2.0.6",
     "node-telegram-bot-api": "^0.30.0",
     "topojson": "^3.0.2"
